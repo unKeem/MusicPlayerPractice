@@ -1,0 +1,20 @@
+<resources>
+    <string name="app_name">MusicPlayer</string>
+
+    <string name="tv_artist">Artist</string>
+    <string name="tv_title">Title</string>
+    <string name="tv_duration">Duration</string>
+    <string name="tv_duration_start">00:00</string>
+    <string name="tv_duration_end">00:00</string>
+
+    <string name="iv_album">Album</string>
+    <string name="iv_likes">Likes</string>
+    <string name="iv_list">List</string>
+    <string name="iv_play">Play</string>
+    <string name="iv_stop">Stop</string>
+
+    <string name="menu_likes">Likes</string>
+    <string name="menu_list">List</string>
+    <string name="menu_search">Search</string>
+
+</resources>

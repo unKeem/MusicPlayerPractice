@@ -1,9 +1,147 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="#C1D8D7"
+    android:padding="30sp"
+    android:weightSum="10"
     tools:context=".view.activity.MusicActivity">
 
-</androidx.constraintlayout.widget.ConstraintLayout>
+    <androidx.cardview.widget.CardView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:cardCornerRadius="20sp"
+        android:layout_weight="7">
+
+
+        <ImageView
+            android:id="@+id/iv_album"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            app:srcCompat="@drawable/ic_music_100" />
+    </androidx.cardview.widget.CardView>
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.5"
+        android:weightSum="5"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tv_title"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="19sp"
+            android:layout_weight="4"
+            android:textStyle="bold"
+            android:textColor="@color/black"
+            android:gravity="center_vertical"
+            android:hint="title" />
+
+
+    </LinearLayout>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.5"
+        android:weightSum="5"
+        android:orientation="horizontal">
+
+        <TextView
+            android:id="@+id/tv_artist"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="18sp"
+            android:layout_weight="4"
+            android:gravity="center_vertical"
+            android:hint="musician" />
+
+
+    </LinearLayout>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+
+        <TextView
+            android:id="@+id/tv_duration"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginLeft="15dp"
+            android:gravity="left"
+            android:text="00:00"/>
+
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
+
+        <TextView
+            android:id="@+id/tv_duration_total"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginRight="15dp"
+            android:gravity="right"
+            android:text="00:00"/>
+    </LinearLayout>
+
+    <SeekBar
+        android:id="@+id/seekBar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_weight="0.5"/>
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_weight="0.5"
+        android:gravity="center"
+        >
+        <ImageButton
+            android:id="@+id/btn_list"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@drawable/button"
+            android:layout_marginEnd="7dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_list_24" />
+
+        <ImageButton
+            android:id="@+id/btn_previous"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@drawable/button"
+            android:layout_marginEnd="7dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_skip_previous_24" />
+
+        <ImageButton
+            android:id="@+id/btn_play_pause"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@drawable/button"
+            android:layout_marginEnd="7dp"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_play_24" />
+
+
+
+        <ImageButton
+            android:id="@+id/btn_next"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:background="@drawable/button"
+            android:layout_weight="1"
+            app:srcCompat="@drawable/ic_skip_next_24" />
+    </LinearLayout>
+</LinearLayout>

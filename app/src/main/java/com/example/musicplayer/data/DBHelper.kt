@@ -1,18 +1,14 @@
-package com.example.musicplayer.util
+package com.example.musicplayer.data
 
 import android.content.Context
 import android.database.Cursor
 import android.database.sqlite.SQLiteDatabase
 import android.database.sqlite.SQLiteOpenHelper
 import android.util.Log
-import com.example.musicplayer.data.Music
 
 class DBHelper(
-    context: Context,
-    name: String,
-    factory: SQLiteDatabase.CursorFactory?,
-    version: Int
-) : SQLiteOpenHelper(context, name, factory, version) {
+    context: Context, name: String, version: Int
+) : SQLiteOpenHelper(context, name, null, version) {
 
     override fun onCreate(db: SQLiteDatabase?) {
         val query = """
@@ -20,7 +16,7 @@ class DBHelper(
         """.trimIndent()
         db?.execSQL(query)
     }
-
+    /*callback when version changed*/
     override fun onUpgrade(db: SQLiteDatabase?, oldVersion: Int, newVersion: Int) {
         val query = """DROP TABLE musicTBL""".trimIndent()
         db?.execSQL(query)
@@ -89,7 +85,8 @@ class DBHelper(
     fun insertAllRecord(music: Music): Boolean {
         val flag: Boolean
         val query =
-            """INSERT INTO musicTBL(id, title, artist, albumId, duration, likes) VALUES('${music.id}', '${music.title}', '${music.artist}', '${music.albumId}', '${music.duration}', '${music.likes}')""".trimIndent()
+            """INSERT INTO musicTBL(id, title, artist, albumId, duration, likes) 
+                VALUES('${music.id}', '${music.title}', '${music.artist}', '${music.albumId}', '${music.duration}', '${music.likes}')""".trimIndent()
         val database = this.writableDatabase
         flag = try {
             database.execSQL(query)
@@ -97,6 +94,8 @@ class DBHelper(
         } catch (e: Exception) {
             Log.d("musicplayer", "DBHelper insertAllRecord : ${e.printStackTrace()}")
             false
+        } finally {
+            database.close()
         }
         return flag
     }
@@ -112,11 +111,13 @@ class DBHelper(
         } catch (e: Exception) {
             Log.d("musicplayer", "DBHelper updateLikes : ${e.printStackTrace()}")
             false
+        } finally {
+            database.close()
         }
         return flag
     }
 
-    fun searchMusic(queries: String): MutableList<Music>? {
+    fun searchMusic(queries: String?): MutableList<Music>? {
         var musicList: MutableList<Music>? = mutableListOf()
         var cursor: Cursor? = null
         val query =
@@ -141,8 +142,10 @@ class DBHelper(
             }
         } catch (e: Exception) {
             Log.d("musicplayer", "DBHelper searchMusic : ${e.printStackTrace()}")
+            musicList = null
         }
         cursor?.close()
+        database.close()
         return musicList
     }
 }

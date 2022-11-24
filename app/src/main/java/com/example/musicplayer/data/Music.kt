@@ -1,6 +1,6 @@
 package com.example.musicplayer.data
 
-import android.annotation.SuppressLint
+import android.content.ContentResolver
 import android.content.Context
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -15,22 +15,14 @@ import kotlinx.parcelize.Parcelize
 
 @Parcelize
 data class Music(
-    val id: String,
-    val title: String?,
-    val artist: String?,
-    val albumId: String?,
-    val duration: Int,
-    val likes: Int
+    var id: String,
+    var title: String?,
+    var artist: String?,
+    var albumId: String?,
+    var duration: Int?,
+    var likes: Int?
 ) : Parcelable {
-    constructor(parcel: Parcel) : this(
-        parcel.readString().toString(),
-        parcel.readString(),
-        parcel.readString(),
-        parcel.readString(),
-        parcel.readInt(),
-        parcel.readInt()
-    )
-
+    /*parceler is fater than serializable*/
     companion object : Parceler<Music> {
         override fun create(parcel: Parcel): Music {
             return Music(parcel)
@@ -41,50 +33,61 @@ data class Music(
             parcel.writeString(title)
             parcel.writeString(artist)
             parcel.writeString(albumId)
-            parcel.writeInt(duration)
-            parcel.writeInt(likes)
+            parcel.writeInt(duration!!)
+            parcel.writeInt(likes!!)
         }
     }
 
-    /*Album Uri*/
-    private fun getAlbumUri(): Uri {
-        return Uri.parse("content://media/external/audio/albumart/$albumId")
+    constructor(parcel: Parcel) : this(
+        parcel.readString().toString(),
+        parcel.readString(),
+        parcel.readString(),
+        parcel.readString(),
+        parcel.readInt(),
+        parcel.readInt()
+    )
+
+    /*get Album Uri*/
+    fun getAlbumUri(): Uri {
+        return Uri.parse("content://media/external/audio/albumart/" + albumId)
     }
 
-    /*Album Image*/
-    @SuppressLint("Recycle")
-    fun getAlbumImage(context: Context, size: Int): Bitmap? {
-        val contentResolver = context.contentResolver
-        val uri = getAlbumUri()
-        val options = BitmapFactory.Options()
-        var parcelFileDescriptor: ParcelFileDescriptor? = null
-        var bitmap: Bitmap?
+    /*get Music Uri*/
+    fun getMusicUri(): Uri {
+        return Uri.withAppendedPath(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
+    }
 
-        try {
-            parcelFileDescriptor = contentResolver.openFileDescriptor(uri, "read")
-            bitmap = BitmapFactory.decodeFileDescriptor(
-                parcelFileDescriptor?.fileDescriptor, null, options
-            )
-            if (bitmap != null) {
-                val tempBitmap = Bitmap.createScaledBitmap(bitmap, size, size, true)
-                bitmap.recycle()
-                bitmap = tempBitmap
-            }
-            return bitmap
-        } catch (e: java.lang.Exception) {
-            Log.d("Music", "${e.printStackTrace()}")
-        } finally {
+    /*Aget lbum Image*/
+    fun getAlbumImage(context: Context, albumImageSize: Int): Bitmap? {
+        val contentResolver: ContentResolver = context.contentResolver
+        val uri = getAlbumUri()
+        /*bitmap option*/
+        val options = BitmapFactory.Options()
+        if (uri != null) {
+            var parcelFileDescriptor: ParcelFileDescriptor? = null
             try {
-                parcelFileDescriptor?.close()
+                parcelFileDescriptor = contentResolver.openFileDescriptor(uri, "r")
+                var bitmap = BitmapFactory.decodeFileDescriptor(
+                    parcelFileDescriptor!!.fileDescriptor, null, options
+                )
+                /*bitmap to the desired size*/
+                if (bitmap != null) {
+                    val tempBitmap =
+                        Bitmap.createScaledBitmap(bitmap, albumImageSize, albumImageSize, true)
+                    bitmap.recycle()
+                    bitmap = tempBitmap
+                }
+                return bitmap
             } catch (e: Exception) {
                 Log.d("Music", "${e.printStackTrace()}")
+            } finally {
+                try {
+                    parcelFileDescriptor?.close()
+                } catch (e: Exception) {
+                    Log.d("Music", "${e.printStackTrace()}")
+                }
             }
         }
         return null
-    }
-
-    /*Music Uri*/
-    fun getMusicUri(): Uri {
-        return Uri.withAppendedPath(MediaStore.Audio.Media.EXTERNAL_CONTENT_URI, id)
     }
 }

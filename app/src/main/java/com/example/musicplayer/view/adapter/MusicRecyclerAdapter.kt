@@ -1,24 +1,26 @@
 package com.example.musicplayer.view.adapter
 
+import android.content.Context
 import android.content.Intent
+import android.os.Parcelable
+import android.text.TextUtils
 import android.util.Log
 import android.view.LayoutInflater
 import android.view.ViewGroup
 import androidx.recyclerview.widget.RecyclerView
 import com.example.musicplayer.R
+import com.example.musicplayer.data.DBHelper
 import com.example.musicplayer.data.Music
 import com.example.musicplayer.databinding.AdapterMusicBinding
-import com.example.musicplayer.util.DBHelper
 import com.example.musicplayer.view.activity.MainActivity
 import com.example.musicplayer.view.activity.MusicActivity
 import java.text.SimpleDateFormat
-import java.util.*
 
-class MusicRecyclerAdapter(private val musicList: ArrayList<Music>) :
+class MusicRecyclerAdapter(val context: Context, val musicList: MutableList<Music>?) :
     RecyclerView.Adapter<MusicRecyclerAdapter.CustomViewHolder>() {
-    //정적멤버상수
+
     companion object {
-        const val ALBUM_SIZE = 500
+        const val ALBUM_SIZE = 100
         const val LIKES_EMPTY = 0
         const val LIKES_FULL = 1
     }
@@ -30,61 +32,65 @@ class MusicRecyclerAdapter(private val musicList: ArrayList<Music>) :
     }
 
     override fun onBindViewHolder(holder: CustomViewHolder, position: Int) {
-        holder.bind(musicList[position])
-    }
+        val binding = (holder as CustomViewHolder).binding
+        val music = musicList?.get(position)
 
-    override fun getItemCount(): Int = musicList.size
+        binding.tvArtist.text = music?.artist
+        binding.tvTitle.text = music?.title
+        binding.tvDuration.text = SimpleDateFormat("mm:ss").format(music?.duration)
+        val bitmap = music?.getAlbumImage(context, MusicRecyclerAdapter.ALBUM_SIZE)
+        if (bitmap != null) {
+            binding.ivAlbumArt.setImageBitmap(bitmap)
+        } else {
+            binding.ivAlbumArt.setImageResource(R.drawable.ic_music_100)
+        }
+        when (music?.likes) {
+            LIKES_EMPTY -> {
+                binding.ivItemLike.setImageResource(R.drawable.likes_empty)
+            }
+            LIKES_FULL -> {
+                binding.ivItemLike.setImageResource(R.drawable.likes_full)
+            }
+        }
+        binding.tvTitle.isSingleLine = true
+        binding.tvTitle.ellipsize = TextUtils.TruncateAt.MARQUEE
+        binding.tvTitle.isSelected = true
 
-    inner class CustomViewHolder(private val binding: AdapterMusicBinding) :
-        RecyclerView.ViewHolder(binding.root) {
+        /*event*/
+        binding.root.setOnClickListener {
+            val playList: ArrayList<Parcelable>? = musicList as ArrayList<Parcelable>
+            val intent = Intent(binding.root.context, MusicActivity::class.java)
+            intent.putExtra("playList", playList)
+            intent.putExtra("position", position)
+            intent.putExtra("music", music)
+            binding.root.context.startActivity(intent)
+        }
 
-        fun bind(data: Music) {
-            binding.apply {
-                tvArtist.text = data.artist
-                tvTitle.text = data.title
-                tvDuration.text =
-                    SimpleDateFormat("mm:ss", Locale.getDefault()).format(data.duration)
-
-                val bitmap = data.getAlbumImage(itemView.context, ALBUM_SIZE)
-
-                if (bitmap != null) {
-                    binding.ivAlbum.setImageBitmap(bitmap)
+        /*save starButtonClickEvent */
+        binding.ivItemLike.setOnClickListener {
+            if (music?.likes == LIKES_EMPTY) {
+                binding.ivItemLike.setImageResource(R.drawable.likes_full)
+                music?.likes = LIKES_FULL
+            } else {
+                binding.ivItemLike.setImageResource(R.drawable.likes_empty)
+                music?.likes = LIKES_EMPTY
+            }
+            if (music != null) {
+                val dbHelper =
+                    DBHelper(context, MainActivity.DATABASE_NAME, MainActivity.DATABASE_VERSION)
+                val flag = dbHelper.updateLikes(music)
+                if (flag == false) {
+                    Log.d("musicplayer", "onBindViewHolder() 실패")
                 } else {
-                    binding.ivAlbum.setImageResource(R.drawable.ic_music_100)
-                }
-
-                when (data.likes) {
-                    LIKES_EMPTY -> binding.ivLikes.setImageResource(R.drawable.likes_empty)
-                    LIKES_FULL -> binding.ivLikes.setImageResource(R.drawable.likes_full)
-                }
-
-                binding.ivLikes.setOnClickListener {
-                    when (data.likes) {
-                        LIKES_EMPTY -> binding.ivLikes.setImageResource(R.drawable.likes_full)
-                        LIKES_FULL -> binding.ivLikes.setImageResource(R.drawable.likes_empty)
-                    }
-
-                    val database = DBHelper(
-                        itemView.context,
-                        MainActivity.DATABASE_NAME,
-                        null,
-                        MainActivity.DATABASE_VERSION
-                    )
-                    val flag = database.updateLikes(data)
-
-                    if (!flag) {
-                        Log.d("musicplayer", "adapter viewHolder bind() btnLikes")
-                    } else {
-                        notifyItemChanged(adapterPosition)
-                    }
-                }
-                binding.root.setOnClickListener {
-                    val intent = Intent(itemView.context, MusicActivity::class.java)
-                    intent.putParcelableArrayListExtra("playlist", musicList)
-                    intent.putExtra("position", adapterPosition)
-                    binding.root.context.startActivity(intent)
+                    notifyDataSetChanged()
                 }
             }
         }
     }
+
+    override fun getItemCount(): Int {
+        return musicList?.size ?: 0
+    }
+
+    class CustomViewHolder(val binding: AdapterMusicBinding) : RecyclerView.ViewHolder(binding.root)
 }

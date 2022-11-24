@@ -1,72 +1,61 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:elevation="10dp"
-    app:cardCornerRadius="10dp"
-    app:cardUseCompatPadding="true">
+    android:layout_height="wrap_content"
+    android:layout_margin="5dp"
+    android:padding="10dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content">
+    <ImageView
+        android:id="@+id/ivAlbumArt"
+        android:layout_width="90dp"
+        android:layout_height="90dp"
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="5dp"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/ic_music_100" />
 
-        <ImageView
-            android:id="@+id/iv_album"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:adjustViewBounds="true"
-            android:contentDescription="Album"
-            android:maxWidth="100dp"
-            android:maxHeight="100dp"
-            android:src="@drawable/ic_music_100"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+    <TextView
+        android:id="@+id/tvArtist"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="30dp"
+        android:text="가수명"
+        app:layout_constraintStart_toEndOf="@+id/ivAlbumArt"
+        app:layout_constraintTop_toTopOf="@+id/ivAlbumArt" />
 
-        <TextView
-            android:id="@+id/tv_artist"
-            style="@style/text_20_bold_808080"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Artist"
-            app:layout_constraintBottom_toTopOf="@id/tv_title"
-            app:layout_constraintStart_toEndOf="@id/iv_album"
-            app:layout_constraintTop_toTopOf="@+id/iv_album" />
+    <TextView
+        android:id="@+id/tvTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="30dp"
+        android:layout_marginTop="30dp"
+        android:text="제목"
+        android:textSize="18sp"
+        android:textStyle="bold"
+        android:textColor="@color/black"
+        app:layout_constraintStart_toEndOf="@+id/ivAlbumArt"
+        app:layout_constraintTop_toBottomOf="@+id/tvArtist" />
 
-        <TextView
-            android:id="@+id/tv_title"
-            style="@style/text_20_bold_808080"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Title"
-            app:layout_constraintBottom_toTopOf="@id/tv_duration"
-            app:layout_constraintStart_toEndOf="@id/iv_album"
-            app:layout_constraintTop_toBottomOf="@+id/tv_artist" />
+    <TextView
+        android:id="@+id/tvDuration"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginEnd="20dp"
+        android:layout_marginBottom="10dp"
+        android:text="노래 길이"
+        app:layout_constraintBottom_toBottomOf="@+id/ivAlbumArt"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-        <TextView
-            android:id="@+id/tv_duration"
-            style="@style/text_20_bold_808080"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Duration"
-            app:layout_constraintBottom_toBottomOf="@+id/iv_album"
-            app:layout_constraintStart_toEndOf="@id/iv_album"
-            app:layout_constraintTop_toBottomOf="@+id/tv_title" />
-
-        <ImageView
-            android:id="@+id/iv_likes"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:adjustViewBounds="true"
-            android:contentDescription="Likes"
-            android:maxWidth="30dp"
-            android:maxHeight="30dp"
-            android:src="@drawable/likes_empty"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
-
-    </androidx.constraintlayout.widget.ConstraintLayout>
-
-
-</androidx.cardview.widget.CardView>
+    <ImageView
+        android:id="@+id/ivItemLike"
+        android:layout_width="30dp"
+        android:layout_height="30dp"
+        android:layout_marginEnd="20dp"
+        android:onClick="onClick"
+        app:layout_constraintBottom_toTopOf="@+id/tvDuration"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@drawable/likes_empty" />
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -1,18 +1,18 @@
 package com.example.musicplayer.view.activity
 
+import android.content.Intent
 import android.media.MediaPlayer
 import android.os.Bundle
 import android.os.Parcelable
 import android.util.Log
-import android.view.KeyEvent
 import android.widget.SeekBar
+import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.musicplayer.R
 import com.example.musicplayer.data.Music
 import com.example.musicplayer.databinding.ActivityMusicBinding
 import kotlinx.coroutines.*
 import java.text.SimpleDateFormat
-import java.util.*
 
 class MusicActivity : AppCompatActivity() {
     private var _binding: ActivityMusicBinding? = null
@@ -24,7 +24,7 @@ class MusicActivity : AppCompatActivity() {
     private var messengerJob: Job? = null
 
     companion object {
-        const val ALBUM_SIZE = 500
+        const val ALBUM_SIZE = 300
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -32,39 +32,51 @@ class MusicActivity : AppCompatActivity() {
         _binding = ActivityMusicBinding.inflate(layoutInflater)
         setContentView(binding.root)
 
-        binding.apply {
-            setMusicController()
-            setMusicWindow()
-        }
-    }
+        /*intent - setting musicList*/
+        playList = intent.getParcelableArrayListExtra("playList")
+        position = intent.getIntExtra("position", 0)
+        music = playList?.get(position) as Music
 
-    private fun setMusicController() {
+        /*binding data at view*/
+        binding.tvTitle.text = music?.title
+        binding.tvArtist.text = music?.artist
+        binding.tvDurationTotal.text = SimpleDateFormat("mm:ss").format(music?.duration)
+        binding.tvDuration.text = "00:00"
+        val bitmap = music?.getAlbumImage(this, ALBUM_SIZE)
+        if (bitmap != null) {
+            binding.ivAlbum.setImageBitmap(bitmap)
+        } else {
+            binding.ivAlbum.setImageResource(R.drawable.ic_music_100)
+        }
+
+        /*register musicfile uri - mediaPlayer*/
         mediaPlayer = MediaPlayer.create(this, music?.getMusicUri())
 
-        binding.seekBar.apply {
-            max = mediaPlayer?.duration!!
+        /*change play location on seekbar*/
+        binding.seekBar.max = mediaPlayer!!.duration
+        binding.seekBar.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
 
-            setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
-                override fun onProgressChanged(seekBar: SeekBar?, process: Int, flag: Boolean) {
-                    if (flag) mediaPlayer?.seekTo(progress)
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                if (fromUser) {
+                    mediaPlayer?.seekTo(progress)
                 }
+            }
+            override fun onStartTrackingTouch(p0: SeekBar?) {
+                Log.d("musicplayer", "seekbar-play")
+            }
+            override fun onStopTrackingTouch(p0: SeekBar?) {
+                Log.d("musicplayer", "seekbar-stop")
+            }
+        })
 
-                override fun onStartTrackingTouch(p0: SeekBar?) {
-                    Log.d("musicplayer", "seekBar changeListener start")
-                }
-
-                override fun onStopTrackingTouch(p0: SeekBar?) {
-                    Log.d("musicplayer", "seekBar changeListener stop")
-                }
-            })
-        }
+        /*listButton event*/
         binding.btnList.setOnClickListener {
-            messengerJob?.cancel()
             mediaPlayer?.stop()
-            mediaPlayer?.release()
-            mediaPlayer = null
+            messengerJob?.cancel()
             finish()
         }
+
+        /*play-pause button event*/
         binding.btnPlayPause.setOnClickListener {
             if (mediaPlayer?.isPlaying == true) {
                 mediaPlayer?.pause()
@@ -74,68 +86,63 @@ class MusicActivity : AppCompatActivity() {
                 binding.btnPlayPause.setImageResource(R.drawable.ic_pause_24)
 
                 val backgroundScope = CoroutineScope(Dispatchers.Default + Job())
-
                 messengerJob = backgroundScope.launch {
                     while (mediaPlayer?.isPlaying == true) {
-                        val currentPosition = mediaPlayer?.currentPosition!!
-                        binding.seekBar.progress = currentPosition
-
                         runOnUiThread {
-                            val currentDuration = SimpleDateFormat(
-                                "mm:ss", Locale.getDefault()
-                            ).format(mediaPlayer!!.currentPosition)
+                            var currentPosition = mediaPlayer?.currentPosition!!
+                            binding.seekBar.progress = currentPosition
+                            val currentDuration =
+                                SimpleDateFormat("mm:ss").format(mediaPlayer!!.currentPosition)
                             binding.tvDuration.text = currentDuration
                         }
                         try {
+                            /*set delay*/
                             delay(1000)
                         } catch (e: Exception) {
-                            Log.d("musicplayer", "duration : ${e.printStackTrace()}")
+                            Log.d("musicplayer", "thread error")
                         }
-                    }
+                    }//end of while
                     runOnUiThread {
-                        binding.tvDuration.text = resources.getString(R.string.tv_duration_start)
+                        if (mediaPlayer!!.currentPosition >= (binding.seekBar.max - 1000)) {
+                            binding.seekBar.progress = 0
+                            binding.tvDuration.text = "00:00"
+                        }
+                        binding.btnPlayPause.setImageResource(R.drawable.ic_play_24)
                     }
-                    binding.btnPlayPause.setImageResource(R.drawable.ic_play_24)
-                    binding.seekBar.progress = 0
-                }
+                }//end of messengerJob
             }
         }
-    }
-
-    private fun setMusicWindow() {
-        playList = intent.getParcelableArrayListExtra("playlist")
-        position = intent.getIntExtra("position", 0)
-        music = playList?.get(position) as Music
-
-        binding.apply {
-            tvTitle.text = music?.title
-            tvArtist.text = music?.artist
-            tvDuration.text = resources.getString(R.string.tv_duration_start)
-            tvDurationTotal.text =
-                SimpleDateFormat("mm:ss", Locale.getDefault()).format(music?.duration)
+        binding.btnNext.setOnClickListener {
+            nextMusic(2)
         }
-        val bitmap = music?.getAlbumImage(this, ALBUM_SIZE)
-
-        if (bitmap != null) {
-            binding.ivAlbum.setImageBitmap(bitmap)
-        } else {
-            binding.ivAlbum.setImageResource(R.drawable.ic_music_100)
+        binding.btnPrevious.setOnClickListener {
+            nextMusic(1)
         }
     }
 
-    override fun onKeyDown(keyCode: Int, event: KeyEvent?): Boolean {
-        if (keyCode == KeyEvent.KEYCODE_BACK) {
-            messengerJob?.cancel()
-            mediaPlayer?.stop()
-            mediaPlayer?.release()
-            mediaPlayer = null
-            finish()
+    /*rewind forward button event*/
+    fun nextMusic(type: Int) {
+        val playList: ArrayList<Parcelable> = playList as ArrayList<Parcelable>
+        val intent = Intent(binding.root.context, MusicActivity::class.java)
+        intent.putExtra("playList", playList)
+        val position =
+            when (type) {
+                1 -> {
+                    position - 1
+                }
+                else -> {
+                    position + 1
+                }
+            }
+        when (position) {
+            -1 -> Toast.makeText(this, "First Music in the List", Toast.LENGTH_SHORT).show()
+            else -> {
+                intent.putExtra("position", position)
+                binding.root.context.startActivity(intent)
+                mediaPlayer?.stop()
+                messengerJob?.cancel()
+                finish()
+            }
         }
-        return super.onKeyDown(keyCode, event)
-    }
-
-    override fun onDestroy() {
-        _binding = null
-        super.onDestroy()
     }
 }
